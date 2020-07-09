@@ -88,3 +88,4 @@ for f in os.listdir(DATA_PATH):
         if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 7):
             wavfile.write("splits/" + str(sample_counter) + ".wav", fs_wav, np.concatenate(segments[prev:splitter+1] * (2**15)).astype(np.int16))
             prev = splitter
+            sample_counter += 1
