@@ -35,6 +35,7 @@ def get_best_silent_segments(indices):
 
     return indices
 
+sample_counter = 0
 for f in os.listdir(DATA_PATH):
     if not f.startswith('Mono22kClean'):
         continue
@@ -85,5 +86,5 @@ for f in os.listdir(DATA_PATH):
     prev = 0
     for splitter in index_of_silent_segments:
         if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 7):
-            wavfile.write("splits/" + str(prev) + ".wav", fs_wav, np.concatenate(segments[prev:splitter+1]).astype(numpy.int16))
+            wavfile.write("splits/" + str(sample_counter) + ".wav", fs_wav, np.concatenate(segments[prev:splitter+1] * (2**15)).astype(np.int16))
             prev = splitter
