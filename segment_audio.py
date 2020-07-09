@@ -27,19 +27,16 @@ def get_best_silent_segments(indices):
         # keep the middle silent segment, remove the ones before and after
         counter = 0
         while (y > x):
-            print('removing silent indexes ' + str(x) + ', ' + str(y))
             indices = indices[indices != x]
             indices = indices[indices != y]
             x += 1
             y -= 1
             counter += 2
 
-        if counter > 0:
-            print(counter)
     return indices
 
 for f in os.listdir(DATA_PATH):
-    if not f.endswith('Mono22kCleanDecember2014.wav'):
+    if not f.startswith('Mono22kClean'):
         continue
     print(f)
 
@@ -60,6 +57,7 @@ for f in os.listdir(DATA_PATH):
 
     # Normalization
     data_wav_norm = data_wav / (2**15)
+
     time_wav = np.arange(0, len(data_wav)) / fs_wav
 
     # Fix-sized segmentation (breaks a signal into non-overlapping segments)
@@ -79,15 +77,13 @@ for f in os.listdir(DATA_PATH):
     # get segments that have energies higher than the threshold
     silence_segments = segments[index_of_silent_segments]
 
-    print(index_of_silent_segments)
-
     # Write out the concatenated silence segments for manual verification
     silence_signal = np.concatenate(silence_segments)
     wavfile.write("splits/silence.wav", fs_wav, silence_signal)
 
-    # now find the silences where we wanna split
+    # Write out the slices
     prev = 0
     for splitter in index_of_silent_segments:
-        if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 8):
-            wavfile.write("splits/" + str(prev) + ".wav", fs_wav, np.concatenate(segments[prev:splitter+1]))
+        if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 7):
+            wavfile.write("splits/" + str(prev) + ".wav", fs_wav, np.concatenate(segments[prev:splitter+1]).astype(numpy.int16))
             prev = splitter
