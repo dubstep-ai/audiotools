@@ -8,12 +8,38 @@ import plotly.graph_objs as go
 import plotly
 
 
-thresholdHOLD_MULTIPLIER = 0.00004
+THRESHOLD_MULTIPLIER = 0.0006
 SEGMENT_SIZE_IN_SECONDS = 0.2
-DATA_PATH='/users/arvind/Downloads/Modi Audio/wavs/'
+DATA_PATH='/users/arvind/Downloads/Modi Audio/Mann ki baat/'
+
+
+def get_best_silent_segments(indices):
+    for x in indices:
+        y = x
+        while ((y+1) in indices) == True:
+            y += 1
+        
+        # special casing sequence of 2 silent segments. Remove x, keep y
+        if (y == x+1):
+            indices = indices[indices != x]
+            break
+
+        # keep the middle silent segment, remove the ones before and after
+        counter = 0
+        while (y > x):
+            print('removing silent indexes ' + str(x) + ', ' + str(y))
+            indices = indices[indices != x]
+            indices = indices[indices != y]
+            x += 1
+            y -= 1
+            counter += 2
+
+        if counter > 0:
+            print(counter)
+    return indices
 
 for f in os.listdir(DATA_PATH):
-    if not f.endswith('3.wav'):
+    if not f.endswith('Mono22kCleanDecember2014.wav'):
         continue
     print(f)
 
@@ -43,25 +69,25 @@ for f in os.listdir(DATA_PATH):
     segments = np.array([data_wav_norm[x:x + segment_size] for x in
                          np.arange(0, len(data_wav_norm), segment_size)])
 
-    # Remove pauses using an energy thresholdhold = 50% of the median energy:
+    # Remove pauses using an energy threshold = THRESHOLD_MULTIPLIER fraction of the median energy
     energies = [(s**2).sum() / len(s) for s in segments]
     # (attention: integer overflow would occure without normalization here!)
-    threshold = thresholdHOLD_MULTIPLIER * np.median(energies)
-    index_of_silent_segments = (np.where(energies < threshold)[0])
-    # get segments that have energies higher than a the thresholdhold:
+    threshold = THRESHOLD_MULTIPLIER * np.median(energies)
+    
+    index_of_silent_segments = get_best_silent_segments((np.where(energies < threshold)[0]))
+    
+    # get segments that have energies higher than the threshold
     silence_segments = segments[index_of_silent_segments]
 
-    print(threshold)
     print(index_of_silent_segments)
 
     # Write out the concatenated silence segments for manual verification
     silence_signal = np.concatenate(silence_segments)
-    wavfile.write("data/silence.wav", fs_wav, silence_signal)
+    wavfile.write("splits/silence.wav", fs_wav, silence_signal)
 
     # now find the silences where we wanna split
     prev = 0
     for splitter in index_of_silent_segments:
-        if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 7):
-            wavfile.write("data/" + str(prev) + ".wav", fs_wav, np.concatenate(segments[prev:splitter]))
-            print(prev, splitter) # write out form prev till right before this segment
+        if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 8):
+            wavfile.write("splits/" + str(prev) + ".wav", fs_wav, np.concatenate(segments[prev:splitter+1]))
             prev = splitter
