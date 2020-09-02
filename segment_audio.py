@@ -3,14 +3,11 @@ import os
 #from pydub import AudioSegment
 import numpy as np
 from scipy.io import wavfile
-from plotly.offline import init_notebook_mode
-import plotly.graph_objs as go
-import plotly
 
-
-THRESHOLD_MULTIPLIER = 0.0006
+THRESHOLD_MULTIPLIER = 0.3
 SEGMENT_SIZE_IN_SECONDS = 0.2
-DATA_PATH='/Users/arvind/Downloads/tmp/'
+DATA_PATH='/Users/arvindsuresh/projects/ai/datasets/51CenterChannel/'
+OUTPUT_PATH='/Users/arvindsuresh/projects/ai/datasets/splits/CenterChannel100s/'
 
 
 def get_best_silent_segments(indices):
@@ -37,7 +34,7 @@ def get_best_silent_segments(indices):
 
 for f in os.listdir(DATA_PATH):
     sample_counter = 0
-    if not f.endswith('wav'):
+    if not f.startswith('Stranger'):
         continue
     print(f)
 
@@ -45,7 +42,7 @@ for f in os.listdir(DATA_PATH):
     fs_wav, data_wav = wavfile.read(DATA_PATH + f)
 
     # read MP3 file using pudub
-    #audiofile = AudioSegment.from_file("data/music_8k.mp3")
+    #audiofile = AudioSegment.from_file("data/k.mp3")
     #data_mp3 = np.array(audiofile.get_array_of_samples())
     #fs_mp3 = audiofile.frame_rate
 
@@ -74,7 +71,7 @@ for f in os.listdir(DATA_PATH):
     threshold = THRESHOLD_MULTIPLIER * np.median(energies)
     
     index_of_silent_segments = get_best_silent_segments((np.where(energies < threshold)[0]))
-    
+    print(index_of_silent_segments) 
     # get segments that have energies higher than the threshold
     silence_segments = segments[index_of_silent_segments]
 
@@ -85,7 +82,7 @@ for f in os.listdir(DATA_PATH):
     # Write out the slices
     prev = 0
     for splitter in index_of_silent_segments:
-        if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 4):
-            wavfile.write("secondsplits/" + f[:-4] + '_' + str(sample_counter) + '.wav', fs_wav, np.concatenate(segments[prev:splitter+1] * (2**15)).astype(np.int16))
+        if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 100):
+            wavfile.write(OUTPUT_PATH + f[:-4] + '_' + str(sample_counter) + '.wav', fs_wav, np.concatenate(segments[prev:splitter+1] * (2**15)).astype(np.int16))
             prev = splitter
             sample_counter += 1
