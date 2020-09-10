@@ -26,7 +26,8 @@ def sample_recognize(storage_uri):
     config = {
         "language_code": language_code,
         "enable_automatic_punctuation": True,
-        #"sample_rate_hertz": sample_rate_hertz,
+        "set_diarization_config": True,
+	#"sample_rate_hertz": sample_rate_hertz,
         #"encoding": encoding,
     }
     audio = {"uri": storage_uri}
