@@ -4,10 +4,12 @@ import os
 import numpy as np
 from scipy.io import wavfile
 
-THRESHOLD_MULTIPLIER = 0.3
-SEGMENT_SIZE_IN_SECONDS = 0.2
-DATA_PATH='/Users/arvindsuresh/projects/ai/datasets/51CenterChannel/'
-OUTPUT_PATH='/Users/arvindsuresh/projects/ai/datasets/splits/CenterChannel100s/'
+THRESHOLD_MULTIPLIER = 0.003
+SEGMENT_SIZE_IN_SECONDS = 0.1
+DATA_PATH='/tmp/'
+OUTPUT_PATH='/tmp/splitsplit/'
+
+SAVE_OUTPUT_PATH='/Users/arvindsuresh/projects/ai/datasets/audiobooks/hindi/clips/'
 
 
 def get_best_silent_segments(indices):
@@ -34,7 +36,7 @@ def get_best_silent_segments(indices):
 
 for f in os.listdir(DATA_PATH):
     sample_counter = 0
-    if not f.startswith('Stranger'):
+    if not f.endswith('.wav'):
         continue
     print(f)
 
@@ -78,11 +80,12 @@ for f in os.listdir(DATA_PATH):
     # Write out the concatenated silence segments for manual verification
     #silence_signal = np.concatenate(silence_segments)
     #wavfile.write("splits/silence.wav", fs_wav, silence_signal)
-
+    print(len(segments))
     # Write out the slices
     prev = 0
     for splitter in index_of_silent_segments:
-        if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 100):
+        if ((splitter - prev) * SEGMENT_SIZE_IN_SECONDS > 9):
             wavfile.write(OUTPUT_PATH + f[:-4] + '_' + str(sample_counter) + '.wav', fs_wav, np.concatenate(segments[prev:splitter+1] * (2**15)).astype(np.int16))
-            prev = splitter
+            print('splitting at ' + str(splitter))
+            prev = splitter+1
             sample_counter += 1
