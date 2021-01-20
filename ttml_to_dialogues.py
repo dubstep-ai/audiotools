@@ -5,7 +5,9 @@ INPUT_DIRECTORY = "/Users/arvindsuresh/projects/ai/datasets/subtitles/"
 OUTPUT_DIRECTORY = "/tmp/"
 
 def write_to_file(fd, line):
-    normalized_line = line.strip()
+    # substitute multiple spaces with a single space, remove trailing/leading whitespaces
+    normalized_line = ' '.join(line.strip.split())  
+    
     if (normalized_line.endswith(('?', '!', '।'))):
         normalized_line += '\n'
     else:
