@@ -6,7 +6,7 @@ OUTPUT_DIRECTORY = "/tmp/"
 
 def write_to_file(fd, line):
     # substitute multiple spaces with a single space, remove trailing/leading whitespaces
-    normalized_line = ' '.join(line.strip.split())  
+    normalized_line = ' '.join(line.strip().split())
     
     if (normalized_line.endswith(('?', '!', '।'))):
         normalized_line += '\n'
@@ -48,11 +48,16 @@ def extract_dialogues_from_ttml_file(filename):
     cleaned_en.close()
 
 def filter_problematic_lines():
+    sum_len = 0
+    total_lines = 0
     with codecs.open(OUTPUT_DIRECTORY + 'output.txt', 'r', encoding='utf8') as d, \
       codecs.open(OUTPUT_DIRECTORY + 'filtered.txt', 'w', encoding='utf8') as f:
         for line in d:
-            if (len(line) < 50) or (len(line) > 130) or ("..." in line) or ("\"" in line) \
-              or (any(char.isdigit() for char in line)) or (u'\u200d' in line):
+            if (len(line) < 50) or (len(line) > 130) or \
+              ("..." in line) or ("\"" in line) or \
+              (any(char.isdigit() for char in line)) or \
+              (any(x in line for x in [":", "(", "\'", "\.", "-", "[", "]"])) or \
+              (u'\u200d' in line):
                 print("skipping")
             else:
                 f.write(line) 
