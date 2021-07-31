@@ -20,11 +20,14 @@ batch processing.
 Example usage:
     python transcribe_async.py resources/audio.raw
     python transcribe_async.py gs://cloud-samples-tests/speech/vr.flac
+
+    Alternatively, use the curl command below to get json output
+    curl -s -H "Content-Type: application/json" -H "Authorization: Bearer "$(gcloud auth application-default print-access-token) https://speech.googleapis.com/v1/speech:recognize -d @req_config.json > answer.json
 """
 
 import argparse
 import io
-
+from google.cloud import speech
 
 # [START speech_transcribe_async_gcs]
 def transcribe_gcs(gcs_uri):
@@ -34,26 +37,38 @@ def transcribe_gcs(gcs_uri):
     client = speech.SpeechClient()
 
     audio = speech.RecognitionAudio(uri=gcs_uri)
+    diarizationConfig=speech.SpeakerDiarizationConfig(
+            enable_speaker_diarization=True,
+            min_speaker_count=1,
+            max_speaker_count=6
+    )
     config = speech.RecognitionConfig(
-        encoding=speech.RecognitionConfig.AudioEncoding.FLAC,
+        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+        use_enhanced=True,
         model="video",
         sample_rate_hertz=16000,
         language_code="en-US",
-        enable_speaker_diarization=True
-        # diarization_speaker_count=2
+        enable_automatic_punctuation=True,
+        #audio_channel_count=2,
+        #enable_separate_recognition_per_channel=True,
+        enable_word_time_offsets=True,
+        diarization_config=diarizationConfig
     )
 
     operation = client.long_running_recognize(config=config, audio=audio)
 
     print("Waiting for operation to complete...")
-    response = operation.result(timeout=90)
+    response = operation.result(timeout=1000)
 
     # Each result is for a consecutive portion of the audio. Iterate through
     # them to get the transcripts for the entire audio file.
+    r = open("result.txt", 'w')
+    r.write((response)) 
     for result in response.results:
         # The first alternative is the most likely one for this portion.
         print(u"Transcript: {}".format(result.alternatives[0].transcript))
         print("Confidence: {}".format(result.alternatives[0].confidence))
+    r.close()
 # [END speech_transcribe_async_gcs]
 
 
