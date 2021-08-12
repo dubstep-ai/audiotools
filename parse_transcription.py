@@ -5,7 +5,8 @@ transcription = json.loads(f.read())
 f.close()
 
 timestamped_words = []
-sentences = []
+timestamped_sentences = []
+full_transcript = ""
 
 # collect all the words, split transcription into 6-8 second sections
 for result in transcription["results"]:
@@ -20,12 +21,13 @@ for result in transcription["results"]:
 sentence = []
 firstWord = None
 for item in timestamped_words:
+    full_transcript = full_transcript + item[1] + ' '
     if firstWord is None:
         firstWord = item
     sentence.append(item)
     if item[1].endswith("."):
-        sentences.append(sentence)
+        timestamped_sentences.append(sentence)
         firstWord = None
         sentence = []
 
-print(sentences[1])
+print(json.dumps({"sentences" : timestamped_sentences, "transcript" : full_transcript}))
